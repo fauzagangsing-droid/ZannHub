@@ -1917,8 +1917,7 @@ AutoFarm:AddSlider({Title="Height (Plank)",Min=5,Max=40,Default=10,Callback=func
 AutoFarm:AddSlider({Title="Offset Distance",Min=2,Max=15,Default=5,Callback=function(v) F.OffsetDist=v end})
 AutoFarm:AddSlider({Title="Tween Speed",Min=20,Max=500,Default=100,Callback=function(v) F.TweenSpeed=v end})
 
-local Boss = Tabs.main:AddSection("Auto Farm Boss", true)
-
+local Boss = Tabs.main:AddSection({Title="Auto Farm Boss"})
 Boss:AddToggle({
     Title="Enable Boss Killing",
     Default=false,
@@ -1928,13 +1927,13 @@ Boss:AddToggle({
     end
 })
 for _,bDef in ipairs(S.Bosses) do
-    Boss:AddToggle({
+    AutoFarm:AddToggle({
         Title=bDef.Display.." ("..bDef.Island..")",
         Default=false,
         Callback=function(v) S.BF[bDef.Name]=v end
     })
 end
-S.BossInfoP=Boss:AddParagraph({Title="Boss Timers",Content="Scanning..."})
+S.BossInfoP=AutoFarm:AddParagraph({Title="Boss Timers",Content="Scanning..."})
 task.spawn(function()
     task.wait(1.5)
     fn.ScanAllBossTimers()
@@ -1953,8 +1952,7 @@ task.spawn(function()
     end
 end)
 
-local SummonBoss = Tabs.Main:AddSection("Summon Boss", true)
-
+local SummonBoss = Tabs.Main:AddSection({Title="Summon Boss"})
 local SummonDiffKeys={GilgameshBoss="GilgameshDiff",BlessedMaidenBoss="BlessedMaidenDiff",AnosBoss="AnosDiff",StrongestTodayBoss="StrongestTodayDiff",StrongestHistoryBoss="StrongestHistoryDiff"}
 for _,bDef in ipairs(S.SummonBosses) do
     local bossName=bDef.Name
@@ -2017,7 +2015,6 @@ local RefreshNpc = Tabs.main:AddButton({Title="Scan All NPCs",Callback=function(
 end})
 -- TELEPORTS Tab
 local Teleport = Tabs.Teleports:AddSection("ISLANDS", true)
-
 Teleport:AddDropdown({Title="Island",Default="Auto",Options=fn.GetIslandNames(),Callback=function(v)
     F.SelectedIsland=v
     fn.StopTw() fn.ClearTgt() S.HoverPos=nil S.LockTarget=nil
@@ -2031,7 +2028,7 @@ Teleport:AddDropdown({Title="Island",Default="Auto",Options=fn.GetIslandNames(),
         end
     end)
 end})
-local TeleportToIsland = Tabs.Teleports:AddSection("Teleport to Island", true)
+local TeleportToIsland = Tabs.Teleports:AddSection({Title="Teleport to Island"})
 for _,name in ipairs(S.TpIslands) do
     local displayName=fn.PortalDisplayName(name)
     TeleportToIsland:AddButton({Title=displayName,Callback=function()
@@ -2054,7 +2051,6 @@ end
 
 -- Auto
 local AutoTabs = Tabs.Auto:AddSection("AUTO", true)
-
 AutoTabs:AddSeperator({Title="Auto Skills"})
 AutoTabs:AddToggle({Title="All Skills",Default=false,Callback=function(v)
     for _,k in ipairs(S.SkillKeys) do
@@ -2069,12 +2065,10 @@ AutoTabs:AddToggle({Title="Skill V",Default=false,Callback=function(v) F.SkillV=
 AutoTabs:AddToggle({Title="Skill F (Nuke)",Default=false,Callback=function(v) F.SkillF=v end})
 AutoTabs:AddSlider({Title="Skill Cooldown",Min=0.3,Max=5,Default=1.0,Callback=function(v) F.SkillCooldown=v end})
 
-local AutoChest = AutoTabs:AddSeperator("Auto Chest", true)
-
+local AutoChest = AutoTabs:AddSeperator({Title="Auto Chest"})
 AutoChest:AddToggle({Title="Auto Open Chests",Default=false,Callback=function(v) F.AutoChest=v end})
 
-local AutoMerchant = AutoTabs:AddSeperator("Auto Merchant", true)
-
+local AutoMerchant = AutoTabs:AddSeperator({Title="Auto Merchant"})
 AutoMerchant:AddToggle({Title="Enable Auto Merchant",Default=false,Callback=function(v) F.AutoMerchant=v if v then S.LastMerchant=0 end end})
 AutoMerchant:AddToggle({Title="Merchant Notifier",Default=true,Callback=function(v) F.MerchNotify=v end})
 for _,item in ipairs(S.MerchantItems) do
