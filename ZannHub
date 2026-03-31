@@ -811,7 +811,7 @@ fn.GetIslandNames=function() local n={"Auto"} for _,i in ipairs(S.Islands) do ta
 -- ===== RENDERSTEPPED LOOP (noclip, hover lock, plank mode) =====
 fn.Conn(RunService.RenderStepped:Connect(function()
     local inBossFight=S.SummonBossFight or S.BossFight
-    local anyActive=F.AutoFarmLevel or inBossFight or F.DungeonQuest or F.HogyokuQuest
+    local anyActive=F.AutoFarmLevel or F.DungeonQuest or F.HogyokuQuest
     if not anyActive then
         if S.NoclipActive then
             S.NoclipActive=false
@@ -828,7 +828,7 @@ fn.Conn(RunService.RenderStepped:Connect(function()
         if S.CharHum then S.CharHum.PlatformStand=true end
     end
 
-    if S.TweenOn then return end
+    if S.TweenOn or S.BossFight then return end
     if S.LockTarget then
         local hm=fn.GetHum(S.LockTarget)
         if not hm or hm.Health<=0 or not S.LockTarget.Parent then S.LockTarget=nil
@@ -841,7 +841,7 @@ fn.Conn(RunService.RenderStepped:Connect(function()
             end
         end
     end
-    if S.LockTarget then
+    if S.LockTarget and not S.BossFight then
         local goal,look=fn.GetGoalForEnemy(S.LockTarget)
         if goal then
             if goal.Y<-30 then S.LockTarget=nil
@@ -850,7 +850,7 @@ fn.Conn(RunService.RenderStepped:Connect(function()
                 hrp.CFrame=CFrame.new(goal,look or goal) S.HoverPos=goal
             end
         end
-    elseif S.HoverPos then
+    elseif S.HoverPos and not S.BossFight then
         hrp.CFrame=CFrame.new(S.HoverPos,S.HoverPos+S.LOOK_DOWN)
     end
     if F.FarmMode=="Plank" then
