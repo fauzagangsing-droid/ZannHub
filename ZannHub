@@ -69,6 +69,22 @@ local Tabs = {
 -- Local Remotes
 local S={} -- all state, data, constants
 local fn={} -- all functions
+S.Win = Window
+-- Compat notifier (old code uses S.Notify.new)
+S.Notify = {
+    new = function(cfg)
+        pcall(function()
+            if UI and UI.SetNotification then
+                UI:SetNotification({
+                    Title = cfg.Title or "",
+                    Description = "",
+                    Content = cfg.Content or "",
+                    Delay = cfg.Duration or cfg.Delay or 3
+                })
+            end
+        end)
+    end
+}
 local R={
 TP={"Remotes","TeleportToPortal"},
 QuestAccept={"RemoteEvents","QuestAccept"},
