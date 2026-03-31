@@ -1908,7 +1908,7 @@ AutoFarm:AddToggle({
     end
 })
 
-local boss = Tabs.main:AddSection({Title="Auto Farm Boss"})
+AutoFarm:AddSeperator({Title="Auto Farm Boss"})
 AutoFarm:AddToggle({
     Title="Enable Boss Killing",
     Default=false,
@@ -1943,7 +1943,7 @@ task.spawn(function()
     end
 end)
 
-local SummonBossSection = Tabs.Main:AddSection({Title="Summon Boss"})
+AutoFarm:AddSeperator({Title="Summon Boss"})
 local SummonDiffKeys={GilgameshBoss="GilgameshDiff",BlessedMaidenBoss="BlessedMaidenDiff",AnosBoss="AnosDiff",StrongestTodayBoss="StrongestTodayDiff",StrongestHistoryBoss="StrongestHistoryDiff"}
 for _,bDef in ipairs(S.SummonBosses) do
     local bossName=bDef.Name
@@ -1992,7 +1992,14 @@ for _,bDef in ipairs(S.SummonBosses) do
         })
     end
 end
-
+AutoFarm:AddToggle({Title="Auto Equip Sword",Default=true,Callback=function(v) F.AutoEquip=v end})
+AutoFarm:AddToggle({Title="Auto Quest",Default=true,Callback=function(v) F.AutoQuest=v if v and F.AutoFarmLevel then task.spawn(fn.EnableGameQuestRepeat) end end})
+AutoFarm:AddToggle({Title="Set Spawn Crystal",Default=false,Callback=function(v) F.AutoSpawn=v S.SpawnDone=false end})
+AutoFarm:AddDropdown({Title="Farm Style",Default="Plank",Options={"Plank","Behind"},Callback=function(v) F.FarmMode=v fn.ClearTgt() S.HoverPos=nil if v~="Plank" then pcall(function() local c=LP.Character if c then local hm=c:FindFirstChildOfClass("Humanoid") if hm then hm.PlatformStand=false end end end) end end})
+AutoFarm:AddDropdown({Title="Move Mode",Default="Tween",Options={"Tween","Teleport"},Callback=function(v) F.MoveMode=v fn.ClearTgt() S.HoverPos=nil end})
+AutoFarm:AddSlider({Title="Height (Plank)",Min=5,Max=40,Default=10,Callback=function(v) F.HeightOffset=v end})
+AutoFarm:AddSlider({Title="Offset Distance",Min=2,Max=15,Default=5,Callback=function(v) F.OffsetDist=v end})
+AutoFarm:AddSlider({Title="Tween Speed",Min=20,Max=500,Default=100,Callback=function(v) F.TweenSpeed=v end})
 AutoFarm:AddButton({Title="Scan All NPCs",Callback=function()
     local isl=S.CurIsland or fn.IslandForLevel(fn.GetLevel())
     local en=fn.FindEnemies(isl)
@@ -2126,11 +2133,15 @@ task.spawn(function()
         task.wait(0.1)
 
         if F.AutoFarmLevel then
-            fn.DoFarmTick()
+            pcall(function()
+                fn.DoFarmTick()
+            end)
         end
 
         if F.BossEnabled then
-            fn.DoBossTick()
+            pcall(function()
+                fn.DoBossTick()
+            end)
         end
     end
 end)
