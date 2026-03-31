@@ -2127,3 +2127,17 @@ task.spawn(function()
         until true
     end
 end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+
+        if F.AutoFarmLevel then
+            fn.DoFarmTick()
+        end
+
+        if F.BossEnabled then
+            fn.DoBossTick()
+        end
+    end
+end)
