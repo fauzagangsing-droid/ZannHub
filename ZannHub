@@ -1892,6 +1892,9 @@ end
 
 -- MAIN Tab
 local AutoFarm = Tabs.Main:AddSection("FARM", true)
+local boss = Tabs.Main:AddSection("Auto Boss", true)
+
+
 
 AutoFarm:AddSeperator({Title="Auto Farm Level"})
 AutoFarm:AddToggle({
@@ -1908,8 +1911,8 @@ AutoFarm:AddToggle({
     end
 })
 
-AutoFarm:AddSeperator({Title="Auto Farm Boss"})
-AutoFarm:AddToggle({
+boss:AddSeperator({Title="Auto Farm Boss"})
+boss:AddToggle({
     Title="Enable Boss Killing",
     Default=false,
     Callback=function(v)
@@ -1918,13 +1921,13 @@ AutoFarm:AddToggle({
     end
 })
 for _,bDef in ipairs(S.Bosses) do
-    AutoFarm:AddToggle({
+    boss:AddToggle({
         Title=bDef.Display.." ("..bDef.Island..")",
         Default=false,
         Callback=function(v) S.BF[bDef.Name]=v end
     })
 end
-S.BossInfoP=AutoFarm:AddParagraph({Title="Boss Timers",Content="Scanning..."})
+S.BossInfoP=boss:AddParagraph({Title="Boss Timers",Content="Scanning..."})
 task.spawn(function()
     task.wait(1.5)
     fn.ScanAllBossTimers()
@@ -1943,14 +1946,14 @@ task.spawn(function()
     end
 end)
 
-AutoFarm:AddSeperator({Title="Summon Boss"})
+boss:AddSeperator({Title="Summon Boss"})
 local SummonDiffKeys={GilgameshBoss="GilgameshDiff",BlessedMaidenBoss="BlessedMaidenDiff",AnosBoss="AnosDiff",StrongestTodayBoss="StrongestTodayDiff",StrongestHistoryBoss="StrongestHistoryDiff"}
 for _,bDef in ipairs(S.SummonBosses) do
     local bossName=bDef.Name
     local bossDisplay=bDef.Display
     local flagName="SummonBoss_"..bossName
     local islLabel=bDef.Island and " ("..fn.PortalDisplayName(bDef.Island)..")" or ""
-    AutoFarm:AddToggle({Title=bossDisplay..islLabel,Default=false,Callback=function(v)
+    boss:AddToggle({Title=bossDisplay..islLabel,Default=false,Callback=function(v)
         if v then
             -- One boss at a time: disable all others first
             for _,ob in ipairs(S.SummonBosses) do
@@ -1984,7 +1987,7 @@ for _,bDef in ipairs(S.SummonBosses) do
     -- UI library ini tidak punya handle toggle "SetValue", jadi kita simpan state di S.BSF saja
     if bDef.Difficulties then
         local diffKey=SummonDiffKeys[bossName]
-        AutoFarm:AddDropdown({
+        boss:AddDropdown({
             Title=bossDisplay.." Difficulty",
             Default="Normal",
             Options=bDef.Difficulties,
