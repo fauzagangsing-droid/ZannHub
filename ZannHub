@@ -50,8 +50,8 @@ end
 if not UI then warn("Fisch: Gagal memuat UI") return end
 
 local Window = UI:CreateWindow({
-    Title = "Nateira Hub | Fisch",
-    Description = "By Nynzz.",
+    Title = "AthomicStore | Sailor Piece",
+    Description = "By Zann",
     ["Tab Width"] = 150,
     SizeUi = UDim2.fromOffset(590, 355)
 })
