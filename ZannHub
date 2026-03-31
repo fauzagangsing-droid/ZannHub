@@ -69,7 +69,6 @@ local Tabs = {
 -- Local Remotes
 local S={} -- all state, data, constants
 local fn={} -- all functions
-S.Win = Window
 local R={
 TP={"Remotes","TeleportToPortal"},
 QuestAccept={"RemoteEvents","QuestAccept"},
@@ -1876,26 +1875,66 @@ end
 
 
 -- MAIN Tab
-local AutoFarm = Tabs.Main:AddSection({ Name = "FARM" })
-AutoFarm:DrawSection({Name="Auto Farm Level"})
-S.FarmToggle=AutoFarm:AddToggle({Name="Auto Farm Level",Flag="AutoFarmLevel",Default=false,Callback=function(v) F.AutoFarmLevel=v if v then S.CurIsland=nil S.IslandTPd=false S.SpawnDone=false S.QState="NONE" S.CurTarget=nil S.LockTarget=nil S.HoverPos=nil S.LastEnemy=0 else fn.FullReset() end end})
-S.FarmKeybind=S.FarmToggle.Link:AddKeybind({Default="V",Flag="FarmLevelKeybind",Callback=function() end})
-S.FarmToggle.Link:AddHelper({Text="Plank above enemies & attack"})
-AutoFarm:DrawSection({Name="Auto Farm Boss"})
-S.BossToggle=AutoFarm:AddToggle({Name="Enable Boss Killing",Flag="BossEnabled",Default=false,Callback=function(v) F.BossEnabled=v if not v and S.BossFight then fn.ExitBossMode(S.BossTargetName) end end})
-S.BossKeybind=S.BossToggle.Link:AddKeybind({Default="B",Flag="BossKeybind",Callback=function() end})
-S.BossToggle.Link:AddHelper({Text="Timer-based world bosses"})
-for _,bDef in ipairs(S.Bosses) do AutoFarm:AddToggle({Name=bDef.Display.." ("..bDef.Island..")",Flag="Boss_"..bDef.Name,Default=false,Callback=function(v) S.BF[bDef.Name]=v end}) end
+local AutoFarm = Tabs.Main:AddSection("FARM", true)
+
+AutoFarm:AddSeperator({Title="Auto Farm Level"})
+AutoFarm:AddToggle({
+    Title="Auto Farm Level",
+    Default=false,
+    Callback=function(v)
+        F.AutoFarmLevel=v
+        if v then
+            S.CurIsland=nil S.IslandTPd=false S.SpawnDone=false S.QState="NONE"
+            S.CurTarget=nil S.LockTarget=nil S.HoverPos=nil S.LastEnemy=0
+        else
+            fn.FullReset()
+        end
+    end
+})
+
+AutoFarm:AddSeperator({Title="Auto Farm Boss"})
+AutoFarm:AddToggle({
+    Title="Enable Boss Killing",
+    Default=false,
+    Callback=function(v)
+        F.BossEnabled=v
+        if not v and S.BossFight then fn.ExitBossMode(S.BossTargetName) end
+    end
+})
+for _,bDef in ipairs(S.Bosses) do
+    AutoFarm:AddToggle({
+        Title=bDef.Display.." ("..bDef.Island..")",
+        Default=false,
+        Callback=function(v) S.BF[bDef.Name]=v end
+    })
+end
 S.BossInfoP=AutoFarm:AddParagraph({Title="Boss Timers",Content="Scanning..."})
-task.spawn(function() task.wait(1.5) fn.ScanAllBossTimers() while S.Running do fn.ScanAllBossTimers() if S.BossInfoP then pcall(function() local txt=fn.GetBossTimerText() if S.BossInfoP.SetContent then S.BossInfoP:SetContent(txt) elseif S.BossInfoP.Set then S.BossInfoP:Set(txt) elseif S.BossInfoP.SetText then S.BossInfoP:SetText(txt) end end) end task.wait(1) end end)
-local BSummonSec=AutoFarm:DrawSection({Name="Summon Boss",Position="right"})
+task.spawn(function()
+    task.wait(1.5)
+    fn.ScanAllBossTimers()
+    while S.Running do
+        fn.ScanAllBossTimers()
+        if S.BossInfoP then
+            pcall(function()
+                local txt=fn.GetBossTimerText()
+                if S.BossInfoP.SetContent then S.BossInfoP:SetContent(txt)
+                elseif S.BossInfoP.Set then S.BossInfoP:Set(txt)
+                elseif S.BossInfoP.SetText then S.BossInfoP:SetText(txt)
+                end
+            end)
+        end
+        task.wait(1)
+    end
+end)
+
+AutoFarm:AddSeperator({Title="Summon Boss"})
 local SummonDiffKeys={GilgameshBoss="GilgameshDiff",BlessedMaidenBoss="BlessedMaidenDiff",AnosBoss="AnosDiff",StrongestTodayBoss="StrongestTodayDiff",StrongestHistoryBoss="StrongestHistoryDiff"}
 for _,bDef in ipairs(S.SummonBosses) do
     local bossName=bDef.Name
     local bossDisplay=bDef.Display
     local flagName="SummonBoss_"..bossName
     local islLabel=bDef.Island and " ("..fn.PortalDisplayName(bDef.Island)..")" or ""
-    local tgl=BSummonSec:AddToggle({Name=bossDisplay..islLabel,Flag=flagName,Default=false,Callback=function(v)
+    AutoFarm:AddToggle({Title=bossDisplay..islLabel,Default=false,Callback=function(v)
         if v then
             -- One boss at a time: disable all others first
             for _,ob in ipairs(S.SummonBosses) do
@@ -1926,72 +1965,97 @@ for _,bDef in ipairs(S.SummonBosses) do
             end
         end
     end})
-    S.BSFToggle[bossName]=tgl
+    -- UI library ini tidak punya handle toggle "SetValue", jadi kita simpan state di S.BSF saja
     if bDef.Difficulties then
-        local diffFlag="Diff_"..bossName
         local diffKey=SummonDiffKeys[bossName]
-        BSummonSec:AddDropdown({Name=bossDisplay.." Difficulty",Default="Normal",Values=bDef.Difficulties,Flag=diffFlag,Callback=function(v) F[diffKey]=v end}).Link:AddHelper({Text="Normal/Medium/Hard/Extreme"})
+        AutoFarm:AddDropdown({
+            Title=bossDisplay.." Difficulty",
+            Default="Normal",
+            Options=bDef.Difficulties,
+            Callback=function(v) F[diffKey]=v end
+        })
     end
 end
-AutoFarm:AddToggle({Name="Auto Equip Sword",Flag="AutoEquip",Default=true,Callback=function(v) F.AutoEquip=v end})
-AutoFarm:AddToggle({Name="Auto Quest",Flag="AutoQuest",Default=true,Callback=function(v) F.AutoQuest=v if v and F.AutoFarmLevel then task.spawn(fn.EnableGameQuestRepeat) end end})
-AutoFarm:AddToggle({Name="Set Spawn Crystal",Flag="AutoSpawn",Default=false,Callback=function(v) F.AutoSpawn=v S.SpawnDone=false end}).Link:AddHelper({Text="TP to crystal on arrival"})
-AutoFarm:AddDropdown({Name="Farm Style",Default="Plank",Values={"Plank","Behind"},Flag="FarmMode",Callback=function(v) F.FarmMode=v fn.ClearTgt() S.HoverPos=nil if v~="Plank" then pcall(function() local c=LP.Character if c then local hm=c:FindFirstChildOfClass("Humanoid") if hm then hm.PlatformStand=false end end end) end end}).Link:AddHelper({Text="Plank = hover above | Behind = stand behind"})
-AutoFarm:AddDropdown({Name="Move Mode",Default="Tween",Values={"Tween","Teleport"},Flag="MoveMode",Callback=function(v) F.MoveMode=v fn.ClearTgt() S.HoverPos=nil end}).Link:AddHelper({Text="Tween = smooth | Teleport = instant"})
-AutoFarm:AddSlider({Name="Height (Plank)",Min=5,Max=40,Default=10,Round=0,Flag="HeightOffset",Callback=function(v) F.HeightOffset=v end})
-AutoFarm:AddSlider({Name="Offset Distance",Min=2,Max=15,Default=5,Round=0,Flag="OffsetDist",Callback=function(v) F.OffsetDist=v end})
-AutoFarm:AddSlider({Name="Tween Speed",Min=20,Max=500,Default=100,Round=0,Flag="TweenSpeed",Callback=function(v) F.TweenSpeed=v end})
-AutoFarm:AddButton({Name="Scan All NPCs",Callback=function()
+AutoFarm:AddToggle({Title="Auto Equip Sword",Default=true,Callback=function(v) F.AutoEquip=v end})
+AutoFarm:AddToggle({Title="Auto Quest",Default=true,Callback=function(v) F.AutoQuest=v if v and F.AutoFarmLevel then task.spawn(fn.EnableGameQuestRepeat) end end})
+AutoFarm:AddToggle({Title="Set Spawn Crystal",Default=false,Callback=function(v) F.AutoSpawn=v S.SpawnDone=false end})
+AutoFarm:AddDropdown({Title="Farm Style",Default="Plank",Options={"Plank","Behind"},Callback=function(v) F.FarmMode=v fn.ClearTgt() S.HoverPos=nil if v~="Plank" then pcall(function() local c=LP.Character if c then local hm=c:FindFirstChildOfClass("Humanoid") if hm then hm.PlatformStand=false end end end) end end})
+AutoFarm:AddDropdown({Title="Move Mode",Default="Tween",Options={"Tween","Teleport"},Callback=function(v) F.MoveMode=v fn.ClearTgt() S.HoverPos=nil end})
+AutoFarm:AddSlider({Title="Height (Plank)",Min=5,Max=40,Default=10,Callback=function(v) F.HeightOffset=v end})
+AutoFarm:AddSlider({Title="Offset Distance",Min=2,Max=15,Default=5,Callback=function(v) F.OffsetDist=v end})
+AutoFarm:AddSlider({Title="Tween Speed",Min=20,Max=500,Default=100,Callback=function(v) F.TweenSpeed=v end})
+AutoFarm:AddButton({Title="Scan All NPCs",Callback=function()
     local isl=S.CurIsland or fn.IslandForLevel(fn.GetLevel())
     local en=fn.FindEnemies(isl)
     local nf=fn.GetNPCFolder() local all={}
     if nf then local ct={} local function addModel(m) if m:IsA("Model") then ct[m.Name]=(ct[m.Name] or 0)+1 end end for _,child in ipairs(nf:GetChildren()) do if child:IsA("Folder") then for _,m in ipairs(child:GetChildren()) do addModel(m) end else addModel(child) end end for n,c in pairs(ct) do table.insert(all,n.." x"..c) end table.sort(all) end
-    S.Notify.new({Title="Matched: "..#en.." ("..isl.Portal..")",Content="All NPCs:\n"..table.concat(all,"\n"),Duration=15,Icon=S.ICON})
+    pcall(function()
+        if UI and UI.SetNotification then
+            UI:SetNotification({Title="Matched: "..#en.." ("..isl.Portal..")",Description="",Content="All NPCs:\n"..table.concat(all,"\n"),Delay=15})
+        end
+    end)
 end})
 -- TELEPORTS Tab
-local Teleport = Tabs.Teleports:AddSection({ Name = "ISLANDS" })
-Teleport:AddDropdown({Name="Island",Default="Auto",Values=fn.GetIslandNames(),Flag="SelectedIsland",Callback=function(v)
+local Teleport = Tabs.Teleports:AddSection("ISLANDS", true)
+Teleport:AddDropdown({Title="Island",Default="Auto",Options=fn.GetIslandNames(),Callback=function(v)
     F.SelectedIsland=v
     fn.StopTw() fn.ClearTgt() S.HoverPos=nil S.LockTarget=nil
     S.CurIsland=nil S.IslandTPd=false S.SpawnDone=false S.LastEnemy=0
     S.CurTarget=nil S.LastTP=0 S.TPCount=0 S.TPReset=tick()
     S.QState="NONE"
     fn.AbandonAllQuests()
-    S.Notify.new({Title="Island Changed",Content="Now farming: "..fn.PortalDisplayName(v),Duration=2,Icon=S.ICON})
+    pcall(function()
+        if UI and UI.SetNotification then
+            UI:SetNotification({Title="Island Changed",Description="",Content="Now farming: "..fn.PortalDisplayName(v),Delay=2})
+        end
+    end)
 end})
-Teleport:DrawSection({Name="Teleport to Island"})
+Teleport:AddSeperator({Title="Teleport to Island"})
 for _,name in ipairs(S.TpIslands) do
     local displayName=fn.PortalDisplayName(name)
-    Teleport:AddButton({Name=displayName,Callback=function()
-        if F.AutoFarmLevel then S.Notify.new({Title="Auto Farm is ON",Content="Disable Auto Farm before teleporting manually",Duration=3,Icon=S.ICON}) return end
+    Teleport:AddButton({Title=displayName,Callback=function()
+        if F.AutoFarmLevel then
+            pcall(function()
+                if UI and UI.SetNotification then
+                    UI:SetNotification({Title="Auto Farm is ON",Description="",Content="Disable Auto Farm before teleporting manually",Delay=3})
+                end
+            end)
+            return
+        end
         fn.ForceTP(name)
-        S.Notify.new({Title="Teleporting to "..displayName,Content="Successfully teleported!",Duration=4,Icon=S.ICON})
+        pcall(function()
+            if UI and UI.SetNotification then
+                UI:SetNotification({Title="Teleporting to "..displayName,Description="",Content="Successfully teleported!",Delay=4})
+            end
+        end)
     end})
 end
 
 -- Auto
-local AutoTabs = Tabs.Auto:DrawSection({Name="Auto Skills"})
-S.AllSkillsToggle=AutoTabs:AddToggle({Name="All Skills",Flag="AllSkills",Default=false,Callback=function(v)
+local AutoTabs = Tabs.Auto:AddSection("AUTO", true)
+AutoTabs:AddSeperator({Title="Auto Skills"})
+AutoTabs:AddToggle({Title="All Skills",Default=false,Callback=function(v)
     for _,k in ipairs(S.SkillKeys) do
         local tgl=S.SkillToggles[k]
-        if tgl then pcall(function() tgl:SetValue(v) end) else F[k]=v end
+        F[k]=v
     end
 end})
-S.AllSkillsKeybind=S.AllSkillsToggle.Link:AddKeybind({Default="M",Flag="AllSkillsKeybind",Callback=function() end})
-S.AllSkillsToggle.Link:AddHelper({Text="Toggle all skills on/off"})
-S.SkillToggles.SkillZ=AutoTabs:AddToggle({Name="Skill Z",Flag="SkillZ",Default=false,Callback=function(v) F.SkillZ=v end}) S.SkillToggles.SkillZ.Link:AddHelper({Text="Auto use"})
-S.SkillToggles.SkillX=AutoTabs:AddToggle({Name="Skill X",Flag="SkillX",Default=false,Callback=function(v) F.SkillX=v end}) S.SkillToggles.SkillX.Link:AddHelper({Text="Auto use"})
-S.SkillToggles.SkillC=AutoTabs:AddToggle({Name="Skill C",Flag="SkillC",Default=false,Callback=function(v) F.SkillC=v end}) S.SkillToggles.SkillC.Link:AddHelper({Text="Auto use"})
-S.SkillToggles.SkillV=AutoTabs:AddToggle({Name="Skill V",Flag="SkillV",Default=false,Callback=function(v) F.SkillV=v end}) S.SkillToggles.SkillV.Link:AddHelper({Text="Auto use"})
-S.SkillToggles.SkillF=AutoTabs:AddToggle({Name="Skill F (Nuke)",Flag="SkillF",Default=false,Callback=function(v) F.SkillF=v end}) S.SkillToggles.SkillF.Link:AddHelper({Text="Auto use — Nuke ability"})
-AutoTabs:AddSlider({Name="Skill Cooldown",Min=0.3,Max=5,Default=1.0,Round=1,Flag="SkillCooldown",Callback=function(v) F.SkillCooldown=v end})
-AutoTabs:DrawSection({Name="Auto Chest",Position="right"})
-AutoTabs:AddToggle({Name="Auto Open Chests",Flag="AutoChest",Default=false,Callback=function(v) F.AutoChest=v end}).Link:AddHelper({Text="Opens all chests in batch"})
-AutoTabs:DrawSection({Name="Auto Merchant",Position="right"})
-AutoTabs:AddToggle({Name="Enable Auto Merchant",Flag="AutoMerchant",Default=false,Callback=function(v) F.AutoMerchant=v if v then S.LastMerchant=0 end end}).Link:AddHelper({Text="Buys all selected items in one go; 30 min restock"})
-AutoTabs:AddToggle({Name="Merchant Notifier",Flag="MerchNotify",Default=true,Callback=function(v) F.MerchNotify=v end}).Link:AddHelper({Text="Shows notification when items are purchased"})
-for _,item in ipairs(S.MerchantItems) do AutoTabs:AddToggle({Name=item,Flag="Merchant_"..item:gsub(" ","_"),Default=false,Callback=function(v) S.FM[item]=v end}) end
-S.Win:DrawCategory({Name="SETTINGS"})
+AutoTabs:AddToggle({Title="Skill Z",Default=false,Callback=function(v) F.SkillZ=v end})
+AutoTabs:AddToggle({Title="Skill X",Default=false,Callback=function(v) F.SkillX=v end})
+AutoTabs:AddToggle({Title="Skill C",Default=false,Callback=function(v) F.SkillC=v end})
+AutoTabs:AddToggle({Title="Skill V",Default=false,Callback=function(v) F.SkillV=v end})
+AutoTabs:AddToggle({Title="Skill F (Nuke)",Default=false,Callback=function(v) F.SkillF=v end})
+AutoTabs:AddSlider({Title="Skill Cooldown",Min=0.3,Max=5,Default=1.0,Callback=function(v) F.SkillCooldown=v end})
+
+AutoTabs:AddSeperator({Title="Auto Chest"})
+AutoTabs:AddToggle({Title="Auto Open Chests",Default=false,Callback=function(v) F.AutoChest=v end})
+
+AutoTabs:AddSeperator({Title="Auto Merchant"})
+AutoTabs:AddToggle({Title="Enable Auto Merchant",Default=false,Callback=function(v) F.AutoMerchant=v if v then S.LastMerchant=0 end end})
+AutoTabs:AddToggle({Title="Merchant Notifier",Default=true,Callback=function(v) F.MerchNotify=v end})
+for _,item in ipairs(S.MerchantItems) do
+    AutoTabs:AddToggle({Title=item,Default=false,Callback=function(v) S.FM[item]=v end})
+end
 -- anti afk
 ---------- STARTUP ----------
 fn.SetupAntiAFK()
