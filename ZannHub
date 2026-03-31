@@ -159,7 +159,7 @@ S.FM={}
 for _,item in ipairs(S.MerchantItems) do S.FM[item]=false end
 ---------- MUTABLE STATE ----------
 S.Kills=0 S.BossKills=0
-S.Hub=nil S.Notify=nil S.Win=nil S.CfgMgr=nil
+S.Hub=nil S.CfgMgr=nil
 S.FarmToggle=nil S.BossToggle=nil
 S.FarmKeybind=nil S.BossKeybind=nil S.SummonBossKeybind=nil S.AllSkillsKeybind=nil
 S.SkillToggles={} S.SkillKeys={"SkillZ","SkillX","SkillC","SkillV","SkillF"} S.AllSkillsToggle=nil
