@@ -1,0 +1,127 @@
+if getgenv().ZannRunning then return end
+getgenv().ZannRunning = true
+
+repeat task.wait() until game:IsLoaded()
+
+local Services = setmetatable({}, {
+    __index = function(self, name)
+        local s = game:GetService(name)
+        rawset(self, name, s)
+        return s
+    end
+})
+
+local Players = Services.Players
+local RunService = Services.RunService
+local RS = Services.ReplicatedStorage
+
+local Plr = Players.LocalPlayer
+
+local function GetChar()
+    local c = Plr.Character
+    if c and c:FindFirstChild("HumanoidRootPart") then
+        return c
+    end
+end
+
+local function GetRemote(path)
+    local current = RS
+    for _, v in ipairs(string.split(path, ".")) do
+        current = current:FindFirstChild(v)
+        if not current then return nil end
+    end
+    return current
+end
+
+local function GetChar()
+    local c = Plr.Character
+    if c and c:FindFirstChild("HumanoidRootPart") then
+        return c
+    end
+end
+
+local function GetRemote(path)
+    local current = RS
+    for _, v in ipairs(string.split(path, ".")) do
+        current = current:FindFirstChild(v)
+        if not current then return nil end
+    end
+    return current
+end
+
+local Remotes = {
+    M1 = GetRemote("CombatSystem.Remotes.RequestHit"),
+    QuestAccept = GetRemote("RemoteEvents.QuestAccept"),
+    QuestAbandon = GetRemote("RemoteEvents.QuestAbandon"),
+}
+
+
+-- MAIN UI --
+local UI
+local libPaths = {"nateirahub/lib.lua", "lib.lua"}
+if readfile and isfile then
+    for _, path in ipairs(libPaths) do
+        if isfile(path) then
+            local ok, lib = pcall(function() return loadstring(readfile(path))() end)
+            if ok and lib then UI = lib break end
+        end
+    end
+end
+if not UI then
+    local ok, lib = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/nynzzkeren/uiNynzz/refs/heads/main/nateguiee.lua", true))()
+    end)
+    if ok and lib then UI = lib end
+end
+if not UI then warn("SAILOR PIECE: Gagal memuat UI") return end
+
+local Window = UI:CreateWindow({
+    Title = "AthomicHUB | Sailor Piece",
+    Description = "By Arill Genjiehh.",
+    ["Tab Width"] = 150,
+    SizeUi = UDim2.fromOffset(590, 355)
+})
+
+local Tabs = {
+    Home = Window:CreateTab({ Name = "Home", Icon = "" }),
+    Main = Window:CreateTab({ Name = "Main", Icon = "" }),
+    Teleports = Window:CreateTab({ Name = "Teleports", Icon = "" }),
+    Misc = Window:CreateTab({ Name = "Misc", Icon = "" }),
+    Player = Window:CreateTab({ Name = "Player", Icon = "" }),
+    Settings = Window:CreateTab({ Name = "Settings", Icon = "" })
+}
+
+Tabs.Main:AddToggle({
+    Name = "Auto Farm",
+    Callback = function(v)
+        _G.AutoFarm = v
+    end
+})
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoFarm then
+            local char = GetChar()
+            if char then
+                
+                local root = char:FindFirstChild("HumanoidRootPart")
+                if root then
+
+                    local mobs = workspace:FindFirstChild("NPCs")
+                    if mobs then
+                        local target = mobs:FindFirstChildWhichIsA("Model")
+                        if target and target:FindFirstChild("HumanoidRootPart") then
+                            
+                            root.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, _G.KillDist, 0)
+
+                            if Remotes.M1 then
+                                Remotes.M1:FireServer()
+                            end
+                        end
+                    end
+
+                end
+            end
+        end
+    end
+end)
