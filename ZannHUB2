@@ -91,7 +91,7 @@ local Tabs = {
     Settings = Window:CreateTab({ Name = "Settings", Icon = "" })
 }
 
-Tabs.Main:AddToggle({
+local autofarm = Tabs.Main:AddToggle({
     Name = "Auto Farm",
     Callback = function(v)
         _G.AutoFarm = v
