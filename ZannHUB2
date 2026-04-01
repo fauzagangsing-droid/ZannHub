@@ -49,6 +49,10 @@ local function GetRemote(path)
     return current
 end
 
+_G.AutoFarm = false
+_G.AutoQuest = false
+_G.KillDist = 10
+
 local Remotes = {
     M1 = GetRemote("CombatSystem.Remotes.RequestHit"),
     QuestAccept = GetRemote("RemoteEvents.QuestAccept"),
@@ -91,39 +95,33 @@ local Tabs = {
     Settings = Window:CreateTab({ Name = "Settings", Icon = "" })
 }
 
-Tabs.Main:AddToggle({
+local MainFishSec = Tabs.Main:AddSection("Farm", true)
+MainFishSec.Main:AddToggle({
     Name = "Auto Farm",
     Callback = function(v)
         _G.AutoFarm = v
     end
 })
 
-_G.AutoFarm = false
-_G.AutoQuest = false
-_G.KillDist = 10
-
 task.spawn(function()
     while task.wait(0.1) do
         if _G.AutoFarm then
             local char = GetChar()
-            if char then
-                
-                local root = char:FindFirstChild("HumanoidRootPart")
-                if root then
+            if not char then continue end
+            
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if not root then continue end
 
-                    local mobs = workspace:FindFirstChild("NPCs")
-                    if mobs then
-                        local target = mobs:FindFirstChildWhichIsA("Model")
-                        if target and target:FindFirstChild("HumanoidRootPart") then
-                            
-                            root.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, _G.KillDist, 0)
+            local mobs = workspace:FindFirstChild("NPCs")
+            if mobs then
+                local target = mobs:FindFirstChildWhichIsA("Model")
+                if target and target:FindFirstChild("HumanoidRootPart") then
+                    
+                    root.CFrame = target.HumanoidRootPart.CFrame * CFrame.new(0, _G.KillDist, 0)
 
-                            if Remotes.M1 then
-                                Remotes.M1:FireServer()
-                            end
-                        end
+                    if Remotes.M1 then
+                        Remotes.M1:FireServer()
                     end
-
                 end
             end
         end
