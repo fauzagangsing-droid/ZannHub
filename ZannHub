@@ -719,7 +719,7 @@ fn.TweenTo=function(enemy)
     end
     if S.TweenTarget~=enemy then fn.StopTw() end
     d=(hrp.Position-goal).Magnitude
-    if d<5 then S.LockTarget=enemy S.TweenOn=false S.TweenTarget=nil S.HoverPos=goal return end
+    if d<5 then S.LockTarget=enemy return end
     if S.TweenOn and S.TweenTarget==enemy then return end
     fn.StopTw() S.TweenOn=true S.TweenTarget=enemy S.LockTarget=nil
     local cf=CFrame.new(goal,look or goal)
