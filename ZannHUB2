@@ -98,6 +98,10 @@ local autofarm = Tabs.Main:AddToggle({
     end
 })
 
+_G.AutoFarm = false
+_G.AutoQuest = false
+_G.KillDist = 10
+
 task.spawn(function()
     while task.wait(0.1) do
         if _G.AutoFarm then
